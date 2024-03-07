@@ -81,7 +81,9 @@ int main()
 
     printEnvInfo();
 
-    glViewport(0, 0, 800, 600);
+    int screenWidth = 800;
+    int screenHeight = 600;
+    glViewport(0, 0, screenWidth, screenHeight);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     // Initialise the shader program.
@@ -148,25 +150,37 @@ int main()
             trans = glm::rotate(trans, (float) glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
             GLint transformLoc = glGetUniformLocation(ourShader.ID, "transform");
             glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+            glm::mat4 model(1.0f); // convert to world space
+            model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+            GLint modelLoc = glGetUniformLocation(ourShader.ID, "model");
+            glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+            glm::mat4 view(1.0f); // convert to view space
+            view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+            GLint viewLoc = glGetUniformLocation(ourShader.ID, "view");
+            glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+            glm::mat4 projection(1.0f); // convert to clip space
+            projection = glm::perspective(glm::radians(45.0f), (float) screenWidth / (float) screenHeight, 0.1f, 100.0f);
+            GLint projectionLoc = glGetUniformLocation(ourShader.ID, "projection");
+            glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
             glBindVertexArray(VAO);
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
             glBindVertexArray(0);
         }
 
-        {
-            ourShader.use();
-            ourShader.setInt("texture1", 0);
-            ourShader.setInt("texture2", 1);
-            glm::mat4 trans(1.0f);
-            trans = glm::translate(trans, glm::vec3(-0.5f, 0.5f, 0.0f));
-            float scaleFactor = absf((float) sin(glfwGetTime()));
-            trans = glm::scale(trans, glm::vec3(scaleFactor, scaleFactor, scaleFactor));
-            GLint transformLoc = glGetUniformLocation(ourShader.ID, "transform");
-            glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
-            glBindVertexArray(VAO);
-            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
-            glBindVertexArray(0);
-        }
+//        {
+//            ourShader.use();
+//            ourShader.setInt("texture1", 0);
+//            ourShader.setInt("texture2", 1);
+//            glm::mat4 trans(1.0f);
+//            trans = glm::translate(trans, glm::vec3(-0.5f, 0.5f, 0.0f));
+//            float scaleFactor = absf((float) sin(glfwGetTime()));
+//            trans = glm::scale(trans, glm::vec3(scaleFactor, scaleFactor, scaleFactor));
+//            GLint transformLoc = glGetUniformLocation(ourShader.ID, "transform");
+//            glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+//            glBindVertexArray(VAO);
+//            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+//            glBindVertexArray(0);
+//        }
 
         // Check, invoke events and swap buffers.
         glfwSwapBuffers(window);
