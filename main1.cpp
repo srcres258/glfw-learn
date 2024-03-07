@@ -10,16 +10,17 @@
 
 //bool readGLSLSources();
 void printEnvInfo();
+GLuint loadTextureFromFile(const char *);
 void processInput(GLFWwindow *);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 float absf(float);
 
 float vertices[] = {
         //     ---- position ----       ---- color ----     - texture coordinate -
-        0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // right-top
-        0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // right-bottom
-        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // left-bottom
-        -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // left-top
+        0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   0.55f, 0.55f,   // right-top
+        0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   0.55f, 0.45f,   // right-bottom
+        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.45f, 0.45f,   // left-bottom
+        -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.45f, 0.55f    // left-top
 };
 
 static unsigned int indices[] = {
@@ -82,24 +83,20 @@ int main()
     // Initialise the shader program.
     Shader ourShader("glsl/vertex_shader_1.glsl", "glsl/fragment_shader_1.glsl");
 
-    // Configure and load textures
-    int width, height, nrChannels;
-    unsigned char *data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
-    unsigned int texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    if (data) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-        stbi_image_free(data);
-    } else {
-        std::cout << "Failed to load textures!" << std::endl;
+    // Configure and load textures.
+    GLuint texture1, texture2;
+    texture1 = loadTextureFromFile("texture/container.jpg");
+    if (texture1 == -1)
         return -1;
-    }
+    stbi_set_flip_vertically_on_load(true);
+    texture2 = loadTextureFromFile("texture/awesomeface.jpg");
+    if (texture2 == -1)
+        return -1;
+    stbi_set_flip_vertically_on_load(false);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture1);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, texture2);
 
     // 0. Initialise the vertex array object (VAO), the vertex buffer object (VBO)
     //    and the element buffer object (EBO).
@@ -124,8 +121,8 @@ int main()
     // color attribute
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void *) (3 * sizeof(GLfloat)));
     glEnableVertexAttribArray(1);
-    // texture coordinate attribute
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *) (6 * sizeof(float)));
+    // texture1 coordinate attribute
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void *) (6 * sizeof(GLfloat)));
     glEnableVertexAttribArray(2);
     // 5. Unbind the VAO to avoid mistaken settings.
     glBindVertexArray(0);
@@ -138,7 +135,8 @@ int main()
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         ourShader.use();
-        glBindTexture(GL_TEXTURE_2D, texture);
+        ourShader.setInt("texture1", 0);
+        ourShader.setInt("texture2", 1);
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
         glBindVertexArray(0);
@@ -173,7 +171,31 @@ void printEnvInfo()
 {
     int nrAttributes;
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
-    std::cout << "Maximum nr of vertex attributes supported: " << nrAttributes << std::endl;
+    std::cout << "GL_MAX_VERTEX_ATTRIBS: " << nrAttributes << std::endl;
+    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &nrAttributes);
+    std::cout << "GL_MAX_TEXTURE_IMAGE_UNITS: " << nrAttributes << std::endl;
+}
+
+GLuint loadTextureFromFile(const char *texturePath)
+{
+    int width, height, nrChannels;
+    unsigned char *data = stbi_load(texturePath, &width, &height, &nrChannels, 0);
+    GLuint texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    if (data) {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        stbi_image_free(data);
+    } else {
+        std::cout << "Failed to load texture: " << texturePath << std::endl;
+        return -1;
+    }
+    return texture;
 }
 
 void processInput(GLFWwindow *window)
