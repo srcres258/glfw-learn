@@ -8,7 +8,9 @@ link_libraries(/usr/lib/libglfw.so)
 
 INCLUDE_DIRECTORIES(include)
 
-add_executable(glfw_learn main.cpp
+add_executable(glfw_learn main1.cpp
         glad.c
         shader.h
-        shader.cpp)
+        shader.cpp
+        stb_image.h
+        stb_image.cpp)
