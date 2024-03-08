@@ -246,6 +246,16 @@ int main()
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        glm::mat4 view(1.0f); // convert to view space
+//            view = glm::lookAt(cameraPos, glm::vec3(0.0f, 0.0f, 0.0f), cameraUp);
+        view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+        GLint viewLoc = glGetUniformLocation(ourShader2.ID, "view");
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+        glm::mat4 projection(1.0f); // convert to clip space
+        projection = glm::perspective(glm::radians(45.0f), (float) screenWidth / (float) screenHeight, 0.1f, 100.0f);
+        GLint projectionLoc = glGetUniformLocation(ourShader2.ID, "projection");
+        glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
         {
             ourShader1.use();
             ourShader1.setInt("texture1", 0);
@@ -260,15 +270,6 @@ int main()
             model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
             GLint modelLoc = glGetUniformLocation(ourShader1.ID, "model");
             glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-            glm::mat4 view(1.0f); // convert to view space
-//            view = glm::lookAt(cameraPos, glm::vec3(0.0f, 0.0f, 0.0f), cameraUp);
-            view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-            GLint viewLoc = glGetUniformLocation(ourShader1.ID, "view");
-            glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-            glm::mat4 projection(1.0f); // convert to clip space
-            projection = glm::perspective(glm::radians(45.0f), (float) screenWidth / (float) screenHeight, 0.1f, 100.0f);
-            GLint projectionLoc = glGetUniformLocation(ourShader1.ID, "projection");
-            glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
             glBindVertexArray(VAO1);
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
@@ -287,15 +288,6 @@ int main()
             model = glm::rotate(model, (float) glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
             GLint modelLoc = glGetUniformLocation(ourShader2.ID, "model");
             glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-            glm::mat4 view(1.0f); // convert to view space
-//            view = glm::lookAt(cameraPos, glm::vec3(0.0f, 0.0f, 0.0f), cameraUp);
-            view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-            GLint viewLoc = glGetUniformLocation(ourShader2.ID, "view");
-            glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-            glm::mat4 projection(1.0f); // convert to clip space
-            projection = glm::perspective(glm::radians(45.0f), (float) screenWidth / (float) screenHeight, 0.1f, 100.0f);
-            GLint projectionLoc = glGetUniformLocation(ourShader2.ID, "projection");
-            glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
             glBindVertexArray(VAO2);
             glDrawArrays(GL_TRIANGLES, 0, 36);
