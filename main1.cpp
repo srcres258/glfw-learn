@@ -98,8 +98,6 @@ glm::vec3 cubePositions[] = {
         glm::vec3(-1.3f,  1.0f, -1.5f)
 };
 
-//GLchar vertexShaderSource[10240];
-//GLchar fragmentShaderSource[10240];
 static const char *vertexShaderSource = "#version 330 core\n"
                                         "layout (location = 0) in vec3 aPos;\n"
                                         "layout (location = 1) in vec3 aColor;\n"
@@ -243,7 +241,6 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glm::mat4 view(1.0f); // convert to view space
-//            view = glm::lookAt(cameraPos, glm::vec3(0.0f, 0.0f, 0.0f), cameraUp);
         view = camera->getViewMatrix();
         glm::mat4 projection(1.0f); // convert to clip space
         projection = glm::perspective(glm::radians(45.0f), (float) screenWidth / (float) screenHeight, 0.1f, 100.0f);
@@ -297,23 +294,6 @@ int main()
     glfwTerminate();
     return 0;
 }
-
-//bool readGLSLSources()
-//{
-//    std::ifstream vertexShaderSourceF("glsl/vertex_shader.glsl", std::ios::in);
-//    if (!vertexShaderSourceF)
-//        return false;
-//    vertexShaderSourceF.read(vertexShaderSource, sizeof(vertexShaderSource));
-//    vertexShaderSourceF.close();
-//
-//    std::ifstream fragmentShaderSourceF("glsl/fragment_shader.glsl", std::ios::in);
-//    if (!fragmentShaderSourceF)
-//        return false;
-//    fragmentShaderSourceF.read(fragmentShaderSource, sizeof(fragmentShaderSource));
-//    fragmentShaderSourceF.close();
-//
-//    return true;
-//}
 
 void printEnvInfo()
 {
