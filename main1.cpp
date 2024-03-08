@@ -245,12 +245,8 @@ int main()
         glm::mat4 view(1.0f); // convert to view space
 //            view = glm::lookAt(cameraPos, glm::vec3(0.0f, 0.0f, 0.0f), cameraUp);
         view = camera->getViewMatrix();
-        GLint viewLoc = glGetUniformLocation(ourShader2.ID, "view");
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
         glm::mat4 projection(1.0f); // convert to clip space
         projection = glm::perspective(glm::radians(45.0f), (float) screenWidth / (float) screenHeight, 0.1f, 100.0f);
-        GLint projectionLoc = glGetUniformLocation(ourShader2.ID, "projection");
-        glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
         {
             ourShader1.use();
@@ -260,12 +256,12 @@ int main()
             glm::mat4 trans(1.0f);
             trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
             trans = glm::rotate(trans, (float) glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
-            GLint transformLoc = glGetUniformLocation(ourShader1.ID, "transform");
-            glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+            ourShader1.setMat4("transform", trans);
             glm::mat4 model(1.0f); // convert to world space
             model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-            GLint modelLoc = glGetUniformLocation(ourShader1.ID, "model");
-            glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+            ourShader1.setMat4("model", model);
+            ourShader1.setMat4("view", view);
+            ourShader1.setMat4("projection", projection);
 
             glBindVertexArray(VAO1);
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
@@ -282,8 +278,9 @@ int main()
             float angle = 20.0f * i;
             model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
 //            model = glm::rotate(model, (float) glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
-            GLint modelLoc = glGetUniformLocation(ourShader2.ID, "model");
-            glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+            ourShader2.setMat4("model", model);
+            ourShader2.setMat4("view", view);
+            ourShader2.setMat4("projection", projection);
 
             glBindVertexArray(VAO2);
             glDrawArrays(GL_TRIANGLES, 0, 36);
