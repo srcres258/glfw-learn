@@ -17,6 +17,7 @@ void printEnvInfo();
 GLuint loadTextureFromFile(const char *);
 void processInput(GLFWwindow *);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 float absf(float);
 void initCamera();
 
@@ -123,12 +124,14 @@ static GLchar infoLog[10240];
 float cameraSpeed = 0.2f;
 glm::vec3 cameraPos(1.0f);
 glm::vec3 cameraTarget(1.0f);
-glm::vec3 cameraDirection(1.0f);
+glm::vec3 cameraFront(1.0f);
 glm::vec3 cameraRight(1.0f);
 glm::vec3 cameraUp(1.0f);
+float pitch = 0.0f, yaw = 0.0f;
 
-float deltaTime = 0.0f;
-float lastTime = 0.0f;
+bool firstMouse = true;
+float deltaTime = 0.0f, lastTime = 0.0f;
+float lastCursorX = 400, lastCursorY = 300;
 
 int main()
 {
@@ -156,7 +159,10 @@ int main()
     int screenWidth = 800;
     int screenHeight = 600;
     glViewport(0, 0, screenWidth, screenHeight);
+
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetCursorPosCallback(window, mouse_callback);
 
     // Initialise the shader program.
     Shader ourShader1("glsl/vertex_shader_1.glsl", "glsl/fragment_shader_1.glsl");
@@ -256,7 +262,7 @@ int main()
             glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
             glm::mat4 view(1.0f); // convert to view space
 //            view = glm::lookAt(cameraPos, glm::vec3(0.0f, 0.0f, 0.0f), cameraUp);
-            view = glm::translate(view, cameraPos);
+            view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
             GLint viewLoc = glGetUniformLocation(ourShader1.ID, "view");
             glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
             glm::mat4 projection(1.0f); // convert to clip space
@@ -283,7 +289,7 @@ int main()
             glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
             glm::mat4 view(1.0f); // convert to view space
 //            view = glm::lookAt(cameraPos, glm::vec3(0.0f, 0.0f, 0.0f), cameraUp);
-            view = glm::translate(view, cameraPos);
+            view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
             GLint viewLoc = glGetUniformLocation(ourShader2.ID, "view");
             glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
             glm::mat4 projection(1.0f); // convert to clip space
@@ -367,7 +373,6 @@ void processInput(GLFWwindow *window)
     std::cout << "FPS: " << fps << std::endl;
 
     cameraSpeed = 5.0f * deltaTime;
-    glm::vec3 cameraFront = cameraDirection;
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         cameraPos += cameraSpeed * cameraFront;
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -376,6 +381,42 @@ void processInput(GLFWwindow *window)
         cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+}
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+    if (firstMouse) {
+        lastCursorX = xpos;
+        lastCursorY = ypos;
+        firstMouse = false;
+    }
+
+    float xoffset = xpos - lastCursorX;
+    // Note that the order gets reversed here since Y coordinate begins from bottom
+    // within OpenGL's coordinate system.
+    float yoffset = lastCursorY - ypos;
+    lastCursorX = xpos;
+    lastCursorY = ypos;
+
+    float sensitivity = 0.2f;
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
+
+    yaw += xoffset;
+    pitch += yoffset;
+
+    if (pitch > 89.0f)
+        pitch = 89.0f;
+    if (pitch < -89.0f)
+        pitch = -89.0f;
+
+    glm::vec3 cameraFrontNew(1.0f);
+    cameraFrontNew.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw));
+    cameraFrontNew.y = sin(glm::radians(pitch));
+    cameraFrontNew.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
+    cameraFront = glm::normalize(cameraFrontNew);
+
+    std::cout << "pitch: " << pitch << ", yaw: " << yaw << std::endl;
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -395,10 +436,10 @@ void initCamera()
 {
     cameraPos = glm::vec3(0.0f, 0.0f, 1.0f);
     cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
-    cameraDirection = glm::normalize(cameraPos - cameraTarget); // normalized vector (aka. unit vector)
+    cameraFront = glm::normalize(cameraPos - cameraTarget); // normalized vector (aka. unit vector)
     glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-    cameraRight = glm::normalize(glm::cross(up, cameraDirection));
-    // Since cameraDirection and cameraRight are both normalized, the result of this cross is normalized by default,
+    cameraRight = glm::normalize(glm::cross(up, cameraFront));
+    // Since cameraFront and cameraRight are both normalized, the result of this cross is normalized by default,
     // hence it needn't be normalized again.
-    cameraUp = glm::cross(cameraDirection, cameraRight);
+    cameraUp = glm::cross(cameraFront, cameraRight);
 }
