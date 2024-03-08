@@ -265,18 +265,18 @@ int main()
             ourShader1.setInt("material.diffuse", 0);
             ourShader1.setInt("material.specular", 1);
             ourShader1.setFloat("material.shininess", 32.0f);
-            ourShader1.setVec3("light.position", lightPos);
-            ourShader1.setVec3("light.ambient", ambientColor);
-            ourShader1.setVec3("light.diffuse", diffuseColor);
-            ourShader1.setVec3("light.specular", glm::vec3(1.0f, 1.0f, 1.0f));
+            ourShader1.setVec3("dirLight.direction", glm::vec3(-1.0f, -1.0f, 0.0f));
+            ourShader1.setVec3("dirLight.ambient", glm::vec3(0.1f, 0.1f, 0.1f));
+            ourShader1.setVec3("dirLight.diffuse", glm::vec3(0.1f, 0.1f, 0.1f));
+            ourShader1.setVec3("dirLight.specular", glm::vec3(0.1f, 0.1f, 0.1f));
+            ourShader1.setVec3("pointLights[0].position", lightPos);
+            ourShader1.setVec3("pointLights[0].ambient", ambientColor);
+            ourShader1.setVec3("pointLights[0].diffuse", diffuseColor);
+            ourShader1.setVec3("pointLights[0].specular", glm::vec3(1.0f, 1.0f, 1.0f));
             // light attenuation
-            ourShader1.setFloat("light.constant", 1.0f);
-            ourShader1.setFloat("light.linear", 0.09f);
-            ourShader1.setFloat("light.quadratic", 0.032f);
-            // flashlight
-            ourShader1.setVec3("light.position", camera->getPosVector());
-            ourShader1.setVec3("light.direction", camera->front);
-            ourShader1.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
+            ourShader1.setFloat("pointLights[0].constant", 1.0f);
+            ourShader1.setFloat("pointLights[0].linear", 0.09f);
+            ourShader1.setFloat("pointLights[0].quadratic", 0.032f);
 
             glBindVertexArray(VAO1);
             glDrawArrays(GL_TRIANGLES, 0, 36);
