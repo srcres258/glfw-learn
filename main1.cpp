@@ -18,6 +18,7 @@ GLuint loadTextureFromFile(const char *);
 void processInput(GLFWwindow *);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 float absf(float);
+void initCamera();
 
 // square
 float vertices[] = {
@@ -119,6 +120,16 @@ static const char *fragmentShaderSource = "#version 330 core\n"
                                           "}\n\0";
 static GLchar infoLog[10240];
 
+float cameraSpeed = 0.2f;
+glm::vec3 cameraPos(1.0f);
+glm::vec3 cameraTarget(1.0f);
+glm::vec3 cameraDirection(1.0f);
+glm::vec3 cameraRight(1.0f);
+glm::vec3 cameraUp(1.0f);
+
+float deltaTime = 0.0f;
+float lastTime = 0.0f;
+
 int main()
 {
     glfwInit();
@@ -218,6 +229,9 @@ int main()
         glBindVertexArray(0);
     }
 
+    initCamera();
+    cameraPos = glm::vec3(0.0f, 0.0f, -3.0f);
+
     while(!glfwWindowShouldClose(window)) {
         // Input
         processInput(window);
@@ -241,7 +255,8 @@ int main()
             GLint modelLoc = glGetUniformLocation(ourShader1.ID, "model");
             glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
             glm::mat4 view(1.0f); // convert to view space
-            view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+//            view = glm::lookAt(cameraPos, glm::vec3(0.0f, 0.0f, 0.0f), cameraUp);
+            view = glm::translate(view, cameraPos);
             GLint viewLoc = glGetUniformLocation(ourShader1.ID, "view");
             glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
             glm::mat4 projection(1.0f); // convert to clip space
@@ -267,7 +282,8 @@ int main()
             GLint modelLoc = glGetUniformLocation(ourShader2.ID, "model");
             glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
             glm::mat4 view(1.0f); // convert to view space
-            view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+//            view = glm::lookAt(cameraPos, glm::vec3(0.0f, 0.0f, 0.0f), cameraUp);
+            view = glm::translate(view, cameraPos);
             GLint viewLoc = glGetUniformLocation(ourShader2.ID, "view");
             glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
             glm::mat4 projection(1.0f); // convert to clip space
@@ -339,8 +355,27 @@ GLuint loadTextureFromFile(const char *texturePath)
 
 void processInput(GLFWwindow *window)
 {
-    if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
+        return;
+    }
+
+    float currentTime = glfwGetTime();
+    deltaTime = currentTime - lastTime;
+    lastTime = currentTime;
+    float fps = 1.0f / deltaTime;
+    std::cout << "FPS: " << fps << std::endl;
+
+    cameraSpeed = 5.0f * deltaTime;
+    glm::vec3 cameraFront = cameraDirection;
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        cameraPos += cameraSpeed * cameraFront;
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        cameraPos -= cameraSpeed * cameraFront;
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -354,4 +389,16 @@ float absf(float absf)
         return -absf;
     else
         return absf;
+}
+
+void initCamera()
+{
+    cameraPos = glm::vec3(0.0f, 0.0f, 1.0f);
+    cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+    cameraDirection = glm::normalize(cameraPos - cameraTarget); // normalized vector (aka. unit vector)
+    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+    cameraRight = glm::normalize(glm::cross(up, cameraDirection));
+    // Since cameraDirection and cameraRight are both normalized, the result of this cross is normalized by default,
+    // hence it needn't be normalized again.
+    cameraUp = glm::cross(cameraDirection, cameraRight);
 }
