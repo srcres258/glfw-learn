@@ -201,7 +201,7 @@ int main()
         // color attribute
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void *) (3 * sizeof(GLfloat)));
         glEnableVertexAttribArray(1);
-        // texture1 coordinate attribute
+        // texture coordinate attribute
         glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void *) (6 * sizeof(GLfloat)));
         glEnableVertexAttribArray(2);
         // 5. Unbind the VAO to avoid mistaken settings.
@@ -221,7 +221,7 @@ int main()
         // position attribute
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void *) 0);
         glEnableVertexAttribArray(0);
-        // texture1 coordinate attribute
+        // texture coordinate attribute
         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void *) (3 * sizeof(GLfloat)));
         glEnableVertexAttribArray(1);
         // 4. Unbind the VAO to avoid mistaken settings.
