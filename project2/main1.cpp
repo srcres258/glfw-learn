@@ -242,6 +242,7 @@ int main()
             ourShader1.setMat4("view", view);
             ourShader1.setMat4("projection", projection);
             ourShader1.setVec3("lightPos", lightPos);
+            ourShader1.setVec3("viewPos", camera->getPosVector());
 
             glBindVertexArray(VAO1);
             glDrawArrays(GL_TRIANGLES, 0, 36);

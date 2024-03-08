@@ -30,6 +30,7 @@ public:
     void changeYaw(float amount);
     void syncFromEulerAngles();
     glm::mat4 getViewMatrix();
+    glm::vec3 getPosVector();
 };
 
 
