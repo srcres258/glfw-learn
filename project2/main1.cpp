@@ -260,6 +260,10 @@ void processInput(GLFWwindow *window)
         camera->moveLeft(cameraSpeed);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera->moveRight(cameraSpeed);
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        camera->moveUp(cameraSpeed);
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+        camera->moveDown(cameraSpeed);
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
@@ -281,8 +285,8 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
     xoffset *= sensitivity;
     yoffset *= sensitivity;
 
-    camera->moveYaw(xoffset);
-    camera->movePitch(yoffset);
+    camera->changeYaw(xoffset);
+    camera->changePitch(yoffset);
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)

@@ -40,7 +40,17 @@ void Camera::moveRight(float amount)
     this->pos += amount * this->right;
 }
 
-void Camera::movePitch(float amount)
+void Camera::moveUp(float amount)
+{
+    this->pos += amount * this->up;
+}
+
+void Camera::moveDown(float amount)
+{
+    this->pos -= amount * this->up;
+}
+
+void Camera::changePitch(float amount)
 {
     this->pitch += amount;
     if (this->pitch > 89.0f)
@@ -50,7 +60,7 @@ void Camera::movePitch(float amount)
     this->syncFromEulerAngles();
 }
 
-void Camera::moveYaw(float amount)
+void Camera::changeYaw(float amount)
 {
     this->yaw += amount;
     this->syncFromEulerAngles();

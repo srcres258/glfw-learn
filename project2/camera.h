@@ -24,8 +24,10 @@ public:
     void moveBack(float amount);
     void moveLeft(float amount);
     void moveRight(float amount);
-    void movePitch(float amount);
-    void moveYaw(float amount);
+    void moveUp(float amount);
+    void moveDown(float amount);
+    void changePitch(float amount);
+    void changeYaw(float amount);
     void syncFromEulerAngles();
     glm::mat4 getViewMatrix();
 };
