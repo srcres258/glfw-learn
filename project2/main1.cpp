@@ -157,12 +157,17 @@ int main()
     Shader ourShader2("glsl/vertex_shader_2.glsl", "glsl/fragment_shader_2.glsl");
 
     // Configure and load textures.
-    GLuint texture1;
+    GLuint texture1, texture2;
     texture1 = loadTextureFromFile("texture/container2.jpg");
     if (texture1 == -1)
         return -1;
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture1);
+    texture2 = loadTextureFromFile("texture/container2_specular.jpg");
+    if (texture2 == -1)
+        return -1;
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, texture2);
 
     GLuint VAO1, VAO2;
     GLuint VBO1, VBO2;
@@ -245,7 +250,7 @@ int main()
             ourShader1.setMat4("projection", projection);
             ourShader1.setVec3("viewPos", camera->getPosVector());
             ourShader1.setInt("material.diffuse", 0);
-            ourShader1.setVec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
+            ourShader1.setInt("material.specular", 1);
             ourShader1.setFloat("material.shininess", 32.0f);
             ourShader1.setVec3("light.position", lightPos);
             ourShader1.setVec3("light.ambient", ambientColor);
