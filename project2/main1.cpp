@@ -266,7 +266,7 @@ int main()
             ourShader2.use();
 
             ourShader2.setVec3("objectColor", glm::vec3(1.0f, 1.0f, 1.0f));
-            ourShader2.setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+            ourShader2.setVec3("lightColor", lightColor);
             glm::mat4 model(1.0f); // convert to world space
             model = glm::translate(model, lightPos);
             model = glm::scale(model, glm::vec3(0.2f));
