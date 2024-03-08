@@ -223,9 +223,16 @@ int main()
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
-        glm::vec3 lightPosDelta(5.0f * cos(glfwGetTime()), 0.0f, 5.0f * sin(glfwGetTime()));
+        glm::vec3 lightPos(0.0f, 1.0f, 0.0f);
+        glm::vec3 lightPosDelta(1.0f * cos(glfwGetTime()), 3.0f * sin(2 * glfwGetTime()), 1.0f * sin(glfwGetTime()));
         lightPos += lightPosDelta;
+        glm::vec3 lightColor;
+        lightColor.x = sin(glfwGetTime() * 2.0f);
+        lightColor.y = sin(glfwGetTime() * 0.7f);
+        lightColor.z = sin(glfwGetTime() * 1.3f);
+        lightColor *= 2;
+        glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
+        glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
         glm::mat4 view(1.0f); // convert to view space
         view = camera->getViewMatrix();
         glm::mat4 projection(1.0f); // convert to clip space
@@ -235,14 +242,20 @@ int main()
             ourShader1.use();
 
             ourShader1.setVec3("objectColor", glm::vec3(1.0f, 0.5f, 0.31f));
-            ourShader1.setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
             glm::mat4 model(1.0f); // convert to world space
             model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
             ourShader1.setMat4("model", model);
             ourShader1.setMat4("view", view);
             ourShader1.setMat4("projection", projection);
-            ourShader1.setVec3("lightPos", lightPos);
             ourShader1.setVec3("viewPos", camera->getPosVector());
+            ourShader1.setVec3("material.ambient", glm::vec3(1.0f, 0.5f, 0.31f));
+            ourShader1.setVec3("material.diffuse", glm::vec3(1.0f, 0.5f, 0.31f));
+            ourShader1.setVec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
+            ourShader1.setFloat("material.shininess", 32.0f);
+            ourShader1.setVec3("light.position", lightPos);
+            ourShader1.setVec3("light.ambient", ambientColor);
+            ourShader1.setVec3("light.diffuse", diffuseColor);
+            ourShader1.setVec3("light.specular", glm::vec3(1.0f, 1.0f, 1.0f));
 
             glBindVertexArray(VAO1);
             glDrawArrays(GL_TRIANGLES, 0, 36);
