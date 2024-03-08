@@ -22,8 +22,53 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 float absf(float);
 
 // cube
-float vertices[] = {
-        //   ---- position ----
+float vertices1[] = {
+        //   ---- vertex position ----        ---- normal vector ----
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+        0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+
+        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+        0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+        0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+        0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+        0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
+};
+
+float vertices2[] = {
+        //   ---- vertex position ----
         -0.5f, -0.5f, -0.5f,
         0.5f, -0.5f, -0.5f,
         0.5f,  0.5f, -0.5f,
@@ -109,6 +154,7 @@ int main()
 
     // Initialise the shader program.
     Shader ourShader1("glsl/vertex_shader_1.glsl", "glsl/fragment_shader_1.glsl");
+    Shader ourShader2("glsl/vertex_shader_2.glsl", "glsl/fragment_shader_2.glsl");
 
     // Configure and load textures.
     GLuint texture1, texture2;
@@ -125,8 +171,8 @@ int main()
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, texture2);
 
-    GLuint VAO1;
-    GLuint VBO1;
+    GLuint VAO1, VAO2;
+    GLuint VBO1, VBO2;
 
     {
         // 0. Initialise the vertex array object (VAO) and the vertex buffer object (VBO).
@@ -136,7 +182,27 @@ int main()
         glBindVertexArray(VAO1);
         // 2. Copy the vertex array into the buffer for OpenGL to use.
         glBindBuffer(GL_ARRAY_BUFFER, VBO1);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices1), vertices1, GL_STATIC_DRAW);
+        // 3. Set the vertex attribute pointer.
+        // vertex position
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void *) 0);
+        glEnableVertexAttribArray(0);
+        // normal vector
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void *) (3 * sizeof(GLfloat)));
+        glEnableVertexAttribArray(1);
+        // 4. Unbind the VAO to avoid mistaken settings.
+        glBindVertexArray(0);
+    }
+
+    {
+        // 0. Initialise the vertex array object (VAO) and the vertex buffer object (VBO).
+        glGenVertexArrays(1, &VAO2);
+        glGenBuffers(1, &VBO2);
+        // 1. Bind the vertex array object (VAO).
+        glBindVertexArray(VAO2);
+        // 2. Copy the vertex array into the buffer for OpenGL to use.
+        glBindBuffer(GL_ARRAY_BUFFER, VBO2);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2), vertices2, GL_STATIC_DRAW);
         // 3. Set the vertex attribute pointer.
         // position attribute
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void *) 0);
@@ -157,6 +223,9 @@ int main()
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+        glm::vec3 lightPosDelta(5.0f * cos(glfwGetTime()), 0.0f, 5.0f * sin(glfwGetTime()));
+        lightPos += lightPosDelta;
         glm::mat4 view(1.0f); // convert to view space
         view = camera->getViewMatrix();
         glm::mat4 projection(1.0f); // convert to clip space
@@ -172,6 +241,7 @@ int main()
             ourShader1.setMat4("model", model);
             ourShader1.setMat4("view", view);
             ourShader1.setMat4("projection", projection);
+            ourShader1.setVec3("lightPos", lightPos);
 
             glBindVertexArray(VAO1);
             glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -179,19 +249,18 @@ int main()
         }
 
         {
-            ourShader1.use();
+            ourShader2.use();
 
-            ourShader1.setVec3("objectColor", glm::vec3(1.0f, 1.0f, 1.0f));
-            ourShader1.setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
-            glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+            ourShader2.setVec3("objectColor", glm::vec3(1.0f, 1.0f, 1.0f));
+            ourShader2.setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
             glm::mat4 model(1.0f); // convert to world space
             model = glm::translate(model, lightPos);
             model = glm::scale(model, glm::vec3(0.2f));
-            ourShader1.setMat4("model", model);
-            ourShader1.setMat4("view", view);
-            ourShader1.setMat4("projection", projection);
+            ourShader2.setMat4("model", model);
+            ourShader2.setMat4("view", view);
+            ourShader2.setMat4("projection", projection);
 
-            glBindVertexArray(VAO1);
+            glBindVertexArray(VAO2);
             glDrawArrays(GL_TRIANGLES, 0, 36);
             glBindVertexArray(0);
         }
