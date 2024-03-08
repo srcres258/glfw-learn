@@ -11,6 +11,7 @@
 
 #include "stb_image.h"
 #include "shader.h"
+#include "camera.h"
 
 //bool readGLSLSources();
 void printEnvInfo();
@@ -19,7 +20,6 @@ void processInput(GLFWwindow *);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 float absf(float);
-void initCamera();
 
 // square
 float vertices[] = {
@@ -122,12 +122,7 @@ static const char *fragmentShaderSource = "#version 330 core\n"
 static GLchar infoLog[10240];
 
 float cameraSpeed = 0.2f;
-glm::vec3 cameraPos(1.0f);
-glm::vec3 cameraTarget(1.0f);
-glm::vec3 cameraFront(1.0f);
-glm::vec3 cameraRight(1.0f);
-glm::vec3 cameraUp(1.0f);
-float pitch = 0.0f, yaw = 0.0f;
+Camera *camera = nullptr;
 
 bool firstMouse = true;
 float deltaTime = 0.0f, lastTime = 0.0f;
@@ -235,20 +230,21 @@ int main()
         glBindVertexArray(0);
     }
 
-    initCamera();
-    cameraPos = glm::vec3(0.0f, 0.0f, -3.0f);
+    camera = new Camera;
 
     while(!glfwWindowShouldClose(window)) {
         // Input
         processInput(window);
 
         // Render
+        std::cout << "pitch: " << camera->pitch << ", yaw: " << camera->yaw << std::endl;
+        std::cout << "x: " << camera->pos.x << ", y: " << camera->pos.y << ", z: " << camera->pos.z << std::endl;
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glm::mat4 view(1.0f); // convert to view space
 //            view = glm::lookAt(cameraPos, glm::vec3(0.0f, 0.0f, 0.0f), cameraUp);
-        view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+        view = camera->getViewMatrix();
         GLint viewLoc = glGetUniformLocation(ourShader2.ID, "view");
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
         glm::mat4 projection(1.0f); // convert to clip space
@@ -285,7 +281,7 @@ int main()
             model = glm::translate(model, cubePositions[i]);
             float angle = 20.0f * i;
             model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-            model = glm::rotate(model, (float) glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+//            model = glm::rotate(model, (float) glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
             GLint modelLoc = glGetUniformLocation(ourShader2.ID, "model");
             glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
@@ -298,6 +294,8 @@ int main()
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
+    delete camera;
 
     glfwTerminate();
     return 0;
@@ -366,13 +364,13 @@ void processInput(GLFWwindow *window)
 
     cameraSpeed = 5.0f * deltaTime;
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        cameraPos += cameraSpeed * cameraFront;
+        camera->moveFront(cameraSpeed);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        cameraPos -= cameraSpeed * cameraFront;
+        camera->moveBack(cameraSpeed);
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        camera->moveLeft(cameraSpeed);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        camera->moveRight(cameraSpeed);
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
@@ -394,21 +392,8 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
     xoffset *= sensitivity;
     yoffset *= sensitivity;
 
-    yaw += xoffset;
-    pitch += yoffset;
-
-    if (pitch > 89.0f)
-        pitch = 89.0f;
-    if (pitch < -89.0f)
-        pitch = -89.0f;
-
-    glm::vec3 cameraFrontNew(1.0f);
-    cameraFrontNew.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw));
-    cameraFrontNew.y = sin(glm::radians(pitch));
-    cameraFrontNew.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
-    cameraFront = glm::normalize(cameraFrontNew);
-
-    std::cout << "pitch: " << pitch << ", yaw: " << yaw << std::endl;
+    camera->moveYaw(xoffset);
+    camera->movePitch(yoffset);
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -422,16 +407,4 @@ float absf(float absf)
         return -absf;
     else
         return absf;
-}
-
-void initCamera()
-{
-    cameraPos = glm::vec3(0.0f, 0.0f, 1.0f);
-    cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
-    cameraFront = glm::normalize(cameraPos - cameraTarget); // normalized vector (aka. unit vector)
-    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-    cameraRight = glm::normalize(glm::cross(up, cameraFront));
-    // Since cameraFront and cameraRight are both normalized, the result of this cross is normalized by default,
-    // hence it needn't be normalized again.
-    cameraUp = glm::cross(cameraFront, cameraRight);
 }

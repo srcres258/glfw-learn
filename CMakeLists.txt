@@ -10,7 +10,6 @@ include_directories(include)
 
 add_executable(glfw_learn main1.cpp
         glad.c
-        shader.h
         shader.cpp
-        stb_image.h
-        stb_image.cpp)
+        stb_image.cpp
+        camera.cpp)
