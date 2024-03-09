@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 23)
 
 link_directories(/usr/lib)
 link_libraries(/usr/lib/libglfw.so)
+link_libraries(/usr/lib/libassimp.so)
 
 include_directories(include)
 

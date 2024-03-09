@@ -172,17 +172,32 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene)
     return {vertices, indices, textures};
 }
 
+static std::vector<Texture> texturesLoaded;
+
 std::vector<Texture> Model::loadMaterialTextures(aiMaterial *mat, aiTextureType type, std::string typeName)
 {
     std::vector<Texture> textures;
     for (unsigned int i = 0; i < mat->GetTextureCount(type); i++) {
         aiString str;
         mat->GetTexture(type, i, &str);
-        Texture texture;
-        texture.id = loadTextureFromFile(str.C_Str(), this->directory);
-        texture.type = typeName;
-        texture.path = str.C_Str();
-        textures.push_back(texture);
+        bool skipLoad = false;
+        for (unsigned int i = 0; i < texturesLoaded.size(); i++) {
+            if (std::strcmp(str.C_Str(), texturesLoaded[i].path.data) == 0) {
+                // Found this texture already loaded. Use the loaded version and skip loading.
+                textures.push_back(texturesLoaded[i]);
+                skipLoad = true;
+                break;
+            }
+        }
+        // If no loaded texture was found, load and list it onto the loaded vector.
+        if (!skipLoad) {
+            Texture texture;
+            texture.id = loadTextureFromFile(str.C_Str(), this->directory);
+            texture.type = typeName;
+            texture.path = str.C_Str();
+            textures.push_back(texture);
+            texturesLoaded.push_back(texture);
+        }
     }
     return textures;
 }

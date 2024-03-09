@@ -12,10 +12,10 @@
 #include "stb_image.h"
 #include "shader.h"
 #include "camera.h"
+#include "model.h"
 
 //bool readGLSLSources();
 void printEnvInfo();
-GLuint loadTextureFromFile(const char *);
 void processInput(GLFWwindow *);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -168,15 +168,16 @@ int main()
     // Initialise the shader program.
     Shader ourShader1("glsl/vertex_shader_1.glsl", "glsl/fragment_shader_1.glsl");
     Shader ourShader2("glsl/vertex_shader_2.glsl", "glsl/fragment_shader_2.glsl");
+    Shader ourShader3("glsl/vertex_shader_3.glsl", "glsl/fragment_shader_3.glsl");
 
     // Configure and load textures.
     GLuint texture1, texture2;
-    texture1 = loadTextureFromFile("texture/container2.jpg");
+    texture1 = loadTextureFromFile("container2.png", "texture");
     if (texture1 == -1)
         return -1;
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture1);
-    texture2 = loadTextureFromFile("texture/container2_specular.jpg");
+    texture2 = loadTextureFromFile("container2_specular.png", "texture");
     if (texture2 == -1)
         return -1;
     glActiveTexture(GL_TEXTURE1);
@@ -224,6 +225,9 @@ int main()
         // 4. Unbind the VAO to avoid mistaken settings.
         glBindVertexArray(0);
     }
+
+    // Load models.
+    Model model1("texture/nanosuit/nanosuit.obj");
 
     camera = new Camera;
 
@@ -300,6 +304,33 @@ int main()
             glBindVertexArray(0);
         }
 
+        {
+            ourShader3.use();
+
+            ourShader3.setVec3("objectColor", glm::vec3(1.0f, 1.0f, 1.0f));
+            glm::mat4 model(1.0f); // convert to world space
+            model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+            ourShader3.setMat4("model", model);
+            ourShader3.setMat4("view", view);
+            ourShader3.setMat4("projection", projection);
+            ourShader3.setVec3("viewPos", camera->getPosVector());
+            ourShader3.setFloat("material.shininess", 32.0f);
+            ourShader3.setVec3("dirLight.direction", glm::vec3(-1.0f, -1.0f, 0.0f));
+            ourShader3.setVec3("dirLight.ambient", glm::vec3(0.1f, 0.1f, 0.1f));
+            ourShader3.setVec3("dirLight.diffuse", glm::vec3(0.1f, 0.1f, 0.1f));
+            ourShader3.setVec3("dirLight.specular", glm::vec3(0.1f, 0.1f, 0.1f));
+            ourShader3.setVec3("pointLights[0].position", lightPos);
+            ourShader3.setVec3("pointLights[0].ambient", ambientColor);
+            ourShader3.setVec3("pointLights[0].diffuse", diffuseColor);
+            ourShader3.setVec3("pointLights[0].specular", glm::vec3(1.0f, 1.0f, 1.0f));
+            // light attenuation
+            ourShader3.setFloat("pointLights[0].constant", 1.0f);
+            ourShader3.setFloat("pointLights[0].linear", 0.09f);
+            ourShader3.setFloat("pointLights[0].quadratic", 0.032f);
+
+            model1.draw(ourShader3);
+        }
+
         // Check, invoke events and swap buffers.
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -318,28 +349,6 @@ void printEnvInfo()
     std::cout << "GL_MAX_VERTEX_ATTRIBS: " << nrAttributes << std::endl;
     glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &nrAttributes);
     std::cout << "GL_MAX_TEXTURE_IMAGE_UNITS: " << nrAttributes << std::endl;
-}
-
-GLuint loadTextureFromFile(const char *texturePath)
-{
-    int width, height, nrChannels;
-    unsigned char *data = stbi_load(texturePath, &width, &height, &nrChannels, 0);
-    GLuint texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    if (data) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-        stbi_image_free(data);
-    } else {
-        std::cout << "Failed to load texture: " << texturePath << std::endl;
-        return -1;
-    }
-    return texture;
 }
 
 void processInput(GLFWwindow *window)
